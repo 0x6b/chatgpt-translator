@@ -1,0 +1,15 @@
+[package]
+name = "chatgpt-translator"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "chatgpt_translator"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1.0.83"
+arboard = "3.4.0"
+async-openai = "0.21.0"
+clap = { version = "4.5.4", features = ["derive", "env"] }
+tokio = { version = "1.37.0", features = ["full"] }
