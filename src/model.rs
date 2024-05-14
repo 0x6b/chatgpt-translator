@@ -4,6 +4,7 @@ use anyhow::{bail, Error, Result};
 
 #[derive(Clone)]
 pub enum Model {
+    Gpt4O,
     Gpt4Turbo,
     Gpt35Turbo,
 }
@@ -18,7 +19,9 @@ impl FromStr for Model {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self> {
-        if s.contains('4') {
+        if s.contains("o4") {
+            Ok(Self::Gpt4O)
+        } else if s.contains('4') {
             Ok(Self::Gpt4Turbo)
         } else if s.contains("35") {
             Ok(Self::Gpt35Turbo)
@@ -34,6 +37,7 @@ impl Display for Model {
             f,
             "{}",
             match self {
+                Self::Gpt4O => "gpt-4o",
                 Self::Gpt4Turbo => "gpt-4-turbo",
                 Self::Gpt35Turbo => "gpt-3.5-turbo",
             }

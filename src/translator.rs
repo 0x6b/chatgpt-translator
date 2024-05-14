@@ -1,14 +1,17 @@
 use std::ops::{Deref, DerefMut};
 
 use anyhow::Result;
-use arboard::Clipboard;
-use async_openai::types::{
-    ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
-    CreateChatCompletionRequestArgs,
+use async_openai::{
+    config::OpenAIConfig,
+    types::{
+        ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
+        CreateChatCompletionRequest, CreateChatCompletionRequestArgs,
+    },
+    Client,
 };
 use clap::Parser;
 
-use crate::state::{Initialized, State, Uninitialized};
+use crate::state::{ReadyForTranslation, State, Uninitialized};
 
 pub struct Translator<S>
 where
@@ -38,14 +41,15 @@ where
 }
 
 impl Translator<Uninitialized> {
-    pub fn new() -> Result<Translator<Initialized>> {
+    pub fn new() -> Result<Translator<ReadyForTranslation>> {
         let Uninitialized {
             openai_api_key,
             model,
             max_tokens,
             temperature,
             frequency_penalty,
-            ..
+            source_language,
+            target_language,
         } = Uninitialized::parse();
 
         let request = CreateChatCompletionRequestArgs::default()
@@ -55,67 +59,52 @@ impl Translator<Uninitialized> {
             .frequency_penalty(frequency_penalty)
             .build()?;
 
+        let client = Client::with_config(OpenAIConfig::default().with_api_key(openai_api_key));
+
         Ok(Translator {
-            state: Initialized::new(openai_api_key, "".to_string(), request),
+            state: ReadyForTranslation { client, request, source_language, target_language },
         })
     }
+}
 
-    pub fn try_new() -> Result<Translator<Initialized>> {
-        let Uninitialized {
-            openai_api_key,
-            model,
-            max_tokens,
-            temperature,
-            frequency_penalty,
-            input,
-        } = Uninitialized::parse();
-
-        let input = match &input {
-            Some(input) => input.join(" "),
-            None => Clipboard::new()
-                .expect("failed to access system clipboard")
-                .get_text()?,
-        }
-        .trim()
-        .to_string();
-
-        let request = CreateChatCompletionRequestArgs::default()
-            .max_tokens(max_tokens)
-            .model(model)
-            .temperature(temperature)
-            .frequency_penalty(frequency_penalty)
-            .messages([
-                ChatCompletionRequestSystemMessageArgs::default()
-                    .content("You are a helpful English technical writing assistant.")
-                    .build()?
-                    .into(),
-                ChatCompletionRequestUserMessageArgs::default()
-                    .content(format!(r#"I am translating the documentation. I want you to act as an expert and technical English translator. Translate the Markdown content I'll paste later into English. You must strictly follow the rules below.
+impl Translator<ReadyForTranslation> {
+    pub async fn translate(&self, input: &str) -> Result<Vec<String>> {
+        let mut request = self.request.clone();
+        request.messages = vec![
+            ChatCompletionRequestSystemMessageArgs::default()
+                .content("You are a helpful English technical writing assistant.")
+                .build()?
+                .into(),
+            ChatCompletionRequestUserMessageArgs::default()
+                .content(format!(r#"I am translating the documentation from {source} to {target}. I want you to act as an expert and technical {target} translator. Translate the Markdown content I'll paste later into {target}. You must strictly follow the rules below.
 
 - Never change the Markdown markup structure. Don't add or remove links. Do not change any URL.
 - Never change the contents of code blocks even if they appear to have a bug.
 - Always preserve the original line breaks. Do not add or remove blank lines.
 - Do not include any explanations nor additional punctuations, only provide a translated markdown.
----
+- The markdown which should be translated is after the "====" line.
+====
 {input}
-"#))
-                    .build()?
-                    .into(),
-            ])
-            .build()?;
+"#,
+                                 source = self.source_language,
+                                 target = self.target_language,
+                                 input = input))
+                .build()?
+                .into(),
+        ];
 
-        Ok(Translator {
-            state: Initialized::new(openai_api_key, input, request),
-        })
-    }
-}
-
-impl Translator<Initialized> {
-    pub fn set_input(&mut self, input: String) {
-        self.input = input;
+        self.send(request).await
     }
 
-    pub async fn run(&mut self) -> Result<Vec<String>> {
-        self.chat().await
+    async fn send(&self, request: CreateChatCompletionRequest) -> Result<Vec<String>> {
+        Ok(self
+            .client
+            .chat()
+            .create(request)
+            .await?
+            .choices
+            .into_iter()
+            .filter_map(|c| c.message.content)
+            .collect::<Vec<_>>())
     }
 }
