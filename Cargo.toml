@@ -2,6 +2,7 @@
 name = "chatgpt-translator"
 version = "0.2.1"
 edition = "2021"
+description = "An OpenAI-powered Markdown document tranlator"
 
 [[bin]]
 name = "ct"
