@@ -14,7 +14,7 @@ impl State for ReadyForTranslation {}
 #[derive(Parser)]
 #[clap(about, version)]
 pub struct Uninitialized {
-    /// OpenAI API key.
+    /// OpenAI API key. You can also set the `OPENAI_API_KEY` environment variable.
     #[arg(short, long, env = "OPENAI_API_KEY")]
     pub openai_api_key: String,
 
@@ -23,7 +23,7 @@ pub struct Uninitialized {
     pub model: Model,
 
     /// The maximum number of tokens to generate in the completion.
-    #[arg(long, default_value = "4000")]
+    #[arg(long, default_value = "8192")]
     pub max_tokens: u16,
 
     /// What sampling temperature to use. Higher values means the model will take more risks. Try
@@ -38,7 +38,8 @@ pub struct Uninitialized {
     #[arg(long, default_value = "1.0")]
     pub frequency_penalty: f32,
 
-    /// A path to a file containing prompt to use for the translation.
+    /// A path to a file containing prompt to use for the translation. If not provided, the prompt
+    /// will be read from `$XDG_CONFIG_HOME/chatgpt_translator/prompt.txt`.
     #[arg(long)]
     pub prompt_file: Option<PathBuf>,
 
