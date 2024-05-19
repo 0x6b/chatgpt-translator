@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use async_openai::{config::OpenAIConfig, types::CreateChatCompletionRequest, Client};
 use clap::Parser;
 
@@ -36,6 +38,10 @@ pub struct Uninitialized {
     #[arg(long, default_value = "1.0")]
     pub frequency_penalty: f32,
 
+    /// A path to a file containing prompt to use for the translation.
+    #[arg(long)]
+    pub prompt_file: Option<PathBuf>,
+
     /// Original language of the text to translate
     #[arg(short, long, default_value = "Japanese")]
     pub source_language: String,
@@ -48,6 +54,5 @@ pub struct Uninitialized {
 pub struct ReadyForTranslation {
     pub(crate) client: Client<OpenAIConfig>,
     pub(crate) request: CreateChatCompletionRequest,
-    pub source_language: String,
-    pub target_language: String,
+    pub prompt: String,
 }
