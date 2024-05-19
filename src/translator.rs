@@ -76,13 +76,15 @@ impl Translator<ReadyForTranslation> {
                 .build()?
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
-                .content(format!(r#"I am translating the documentation from {source} to {target}. I want you to act as an expert and technical {target} translator. Translate the Markdown content I'll paste later into {target}. You must strictly follow the rules below.
+                .content(format!(r#"I am translating the documentation from {source} to {target}. I want you to act as an expert and technical {target} translator. Translate the Markdown content I'll paste later into {target}. You must strictly follow the rules below:
 
-- Never change the Markdown markup structure. Don't add or remove links. Do not change any URL.
-- Never change the contents of code blocks even if they appear to have a bug.
-- Always preserve the original line breaks. Do not add or remove blank lines.
-- Do not include any explanations nor additional punctuations, only provide a translated markdown.
-- The markdown which should be translated is after the "====" line.
+1. **Preserve Markdown Structure**: Never change the Markdown markup structure. Don't add or remove links, and do not change any URLs.
+2. **Code Blocks**: Never change the contents of code blocks, even if they appear to have a bug.
+3. **Line Breaks**: Always preserve the original line breaks. Do not add or remove blank lines.
+4. **No Additional Content**: Do not include any explanations or additional punctuation. Only provide the translated Markdown content.
+
+The Markdown text to be translated is after the "====" line.
+
 ====
 {input}
 "#,

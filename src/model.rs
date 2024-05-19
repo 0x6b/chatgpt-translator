@@ -19,7 +19,7 @@ impl FromStr for Model {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self> {
-        if s.contains("o4") {
+        if s.contains("4o") {
             Ok(Self::Gpt4O)
         } else if s.contains('4') {
             Ok(Self::Gpt4Turbo)

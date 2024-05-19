@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use arboard::Clipboard;
 use chatgpt_translator::Translator;
 use regex::Regex;
@@ -11,7 +11,7 @@ async fn main() -> Result<()> {
         .trim()
         .to_string();
 
-    let parts = split_markdown_by_headings(&text);
+    let parts = split_markdown_by_headings(&text)?;
 
     let translator = Translator::new()?;
 
@@ -23,7 +23,11 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn split_markdown_by_headings(text: &str) -> Vec<&str> {
+fn split_markdown_by_headings(text: &str) -> Result<Vec<&str>> {
+    if text.is_empty() {
+        bail!("empty text")
+    }
+
     let re = Regex::new(r"(?m)^#.*$").unwrap();
     let mut result = Vec::new();
     let mut last = 0;
@@ -40,5 +44,5 @@ fn split_markdown_by_headings(text: &str) -> Vec<&str> {
         result.push(text[last..].trim());
     }
 
-    result
+    Ok(result)
 }
