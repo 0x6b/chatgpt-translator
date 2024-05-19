@@ -1,6 +1,10 @@
-use std::ops::{Deref, DerefMut};
+use std::{
+    fs::read_to_string,
+    ops::{Deref, DerefMut},
+    path::PathBuf,
+};
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use async_openai::{
     config::OpenAIConfig,
     types::{
@@ -10,6 +14,7 @@ use async_openai::{
     Client,
 };
 use clap::Parser;
+use xdg::BaseDirectories;
 
 use crate::state::{ReadyForTranslation, State, Uninitialized};
 
@@ -48,9 +53,12 @@ impl Translator<Uninitialized> {
             max_tokens,
             temperature,
             frequency_penalty,
+            prompt_file,
             source_language,
             target_language,
         } = Uninitialized::parse();
+
+        let client = Client::with_config(OpenAIConfig::default().with_api_key(openai_api_key));
 
         let request = CreateChatCompletionRequestArgs::default()
             .max_tokens(max_tokens)
@@ -59,10 +67,10 @@ impl Translator<Uninitialized> {
             .frequency_penalty(frequency_penalty)
             .build()?;
 
-        let client = Client::with_config(OpenAIConfig::default().with_api_key(openai_api_key));
+        let prompt = get_prompt(prompt_file, &source_language, &target_language)?;
 
         Ok(Translator {
-            state: ReadyForTranslation { client, request, source_language, target_language },
+            state: ReadyForTranslation { client, request, prompt },
         })
     }
 }
@@ -76,21 +84,7 @@ impl Translator<ReadyForTranslation> {
                 .build()?
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
-                .content(format!(r#"I am translating the documentation from {source} to {target}. I want you to act as an expert and technical {target} translator. Translate the Markdown content I'll paste later into {target}. You must strictly follow the rules below:
-
-1. **Preserve Markdown Structure**: Never change the Markdown markup structure. Don't add or remove links, and do not change any URLs.
-2. **Code Blocks**: Never change the contents of code blocks, even if they appear to have a bug.
-3. **Line Breaks**: Always preserve the original line breaks. Do not add or remove blank lines.
-4. **No Additional Content**: Do not include any explanations or additional punctuation. Only provide the translated Markdown content.
-
-The Markdown text to be translated is after the "====" line.
-
-====
-{input}
-"#,
-                                 source = self.source_language,
-                                 target = self.target_language,
-                                 input = input))
+                .content(format!("{}\n{input}", self.prompt))
                 .build()?
                 .into(),
         ];
@@ -109,4 +103,27 @@ The Markdown text to be translated is after the "====" line.
             .filter_map(|c| c.message.content)
             .collect::<Vec<_>>())
     }
+}
+
+fn get_prompt(
+    path: Option<PathBuf>,
+    source_language: &str,
+    target_language: &str,
+) -> Result<String> {
+    let path = match path {
+        Some(p) => p,
+        None => {
+            BaseDirectories::with_prefix("chatgpt_translator")?.place_config_file("prompt.txt")?
+        }
+    };
+    let prompt = (match read_to_string(&path) {
+        Ok(c) => c,
+        Err(e) => {
+            bail!("Couldn't open prompt at: {path:?}. {e}");
+        }
+    })
+    .replace("{source}", source_language)
+    .replace("{target}", target_language);
+
+    Ok(prompt)
 }
