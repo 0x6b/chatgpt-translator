@@ -23,7 +23,7 @@ pub struct Uninitialized {
     pub model: Model,
 
     /// The maximum number of tokens to generate in the completion.
-    #[arg(long, default_value = "8192")]
+    #[arg(long, default_value = "4096")]
     pub max_tokens: u16,
 
     /// What sampling temperature to use. Higher values means the model will take more risks. Try
