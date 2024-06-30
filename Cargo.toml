@@ -1,6 +1,6 @@
 [package]
 name = "chatgpt-translator"
-version = "0.3.3"
+version = "0.3.4"
 edition = "2021"
 description = "An OpenAI-powered Markdown document tranlator. Translate your clipboard text into any language."
 
