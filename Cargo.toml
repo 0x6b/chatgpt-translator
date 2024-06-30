@@ -1,6 +1,6 @@
 [package]
 name = "chatgpt-translator"
-version = "0.3.3"
+version = "0.3.4"
 edition = "2021"
 description = "An OpenAI-powered Markdown document tranlator. Translate your clipboard text into any language."
 
@@ -15,8 +15,8 @@ path = "src/lib.rs"
 [dependencies]
 anyhow = "1.0.86"
 arboard = "3.4.0"
-async-openai = "0.21.0"
-clap = { version = "4.5.4", features = ["derive", "env"] }
-regex = "1.10.4"
-tokio = { version = "1.37.0", features = ["full"] }
+async-openai = "0.23.3"
+clap = { version = "4.5.8", features = ["derive", "env"] }
+regex = "1.10.5"
+tokio = { version = "1.38.0", features = ["full"] }
 xdg = "2.5.2"
