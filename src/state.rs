@@ -18,8 +18,8 @@ pub struct Uninitialized {
     #[arg(short, long, env = "OPENAI_API_KEY")]
     pub openai_api_key: String,
 
-    /// Model to use. `4o` - gpt-4o, `4` - gpt-4-turbo, `35` - gpt-3.5-turbo
-    #[arg(short, long, default_value = "4o")]
+    /// Model to use. `4o` - gpt-4o, `mini` - gpt-4o-mini, `4` - gpt-4-turbo, `35` - gpt-3.5-turbo
+    #[arg(short, long, default_value = "mini")]
     pub model: Model,
 
     /// The maximum number of tokens to generate in the completion.
