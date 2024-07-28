@@ -1,7 +1,7 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use arboard::Clipboard;
 use chatgpt_translator::Translator;
-use regex::Regex;
+use markdown_split::split;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -11,7 +11,7 @@ async fn main() -> Result<()> {
         .trim()
         .to_string();
 
-    let parts = split_markdown_by_headings(&text)?;
+    let parts = split(&text, None)?;
 
     let translator = Translator::new()?;
 
@@ -21,28 +21,4 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-fn split_markdown_by_headings(text: &str) -> Result<Vec<&str>> {
-    if text.is_empty() {
-        bail!("empty text")
-    }
-
-    let re = Regex::new(r"(?m)^#.*$").unwrap();
-    let mut result = Vec::new();
-    let mut last = 0;
-
-    for mat in re.find_iter(text) {
-        let range = mat.range();
-        if range.start != last {
-            result.push(text[last..range.start].trim());
-        }
-        last = range.start;
-    }
-
-    if last < text.len() {
-        result.push(text[last..].trim());
-    }
-
-    Ok(result)
 }
