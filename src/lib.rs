@@ -1,6 +1,4 @@
-pub use state::TranslationConfiguration;
-pub use translator::Translator;
+pub use translator::{TranslationConfiguration, Translator};
 
 mod model;
-mod state;
 mod translator;
