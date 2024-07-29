@@ -23,13 +23,13 @@ pub struct Uninitialized {
     pub model: Model,
 
     /// The maximum number of tokens to generate in the completion.
-    #[arg(long, default_value = "4096")]
+    #[arg(long, default_value = "16384")]
     pub max_tokens: u16,
 
     /// What sampling temperature to use. Higher values means the model will take more risks. Try
     /// 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined
     /// answer.
-    #[arg(long, default_value = "0.3")]
+    #[arg(long, default_value = "0")]
     pub temperature: f32,
 
     /// Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing
@@ -38,8 +38,8 @@ pub struct Uninitialized {
     #[arg(long, default_value = "1.0")]
     pub frequency_penalty: f32,
 
-    /// A path to a file containing prompt to use for the translation. If not provided, the prompt
-    /// will be read from `$XDG_CONFIG_HOME/chatgpt_translator/prompt.txt`.
+    /// A path to a file containing prompt to use for the translation. If not provided or failed to
+    /// read a provided path, the default prompt will be used.
     #[arg(long)]
     pub prompt_file: Option<PathBuf>,
 

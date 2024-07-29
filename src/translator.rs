@@ -4,7 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use async_openai::{
     config::OpenAIConfig,
     types::{
@@ -14,7 +14,6 @@ use async_openai::{
     Client,
 };
 use clap::Parser;
-use xdg::BaseDirectories;
 
 use crate::state::{ReadyForTranslation, State, Uninitialized};
 
@@ -105,25 +104,20 @@ impl Translator<ReadyForTranslation> {
     }
 }
 
+static DEFAULT_PROMPT: &str = include_str!("../default-prompt.txt");
+
 fn get_prompt(
     path: Option<PathBuf>,
     source_language: &str,
     target_language: &str,
 ) -> Result<String> {
-    let path = match path {
-        Some(p) => p,
-        None => {
-            BaseDirectories::with_prefix("chatgpt_translator")?.place_config_file("prompt.txt")?
-        }
+    let prompt = match path {
+        Some(p) => read_to_string(&p).unwrap_or_else(|_| DEFAULT_PROMPT.to_string()),
+        None => DEFAULT_PROMPT.to_string(),
     };
-    let prompt = (match read_to_string(&path) {
-        Ok(c) => c,
-        Err(e) => {
-            bail!("Couldn't open prompt at: {path:?}. {e}");
-        }
-    })
-    .replace("{source}", source_language)
-    .replace("{target}", target_language);
+    let prompt = prompt
+        .replace("{source}", source_language)
+        .replace("{target}", target_language);
 
     Ok(prompt)
 }
