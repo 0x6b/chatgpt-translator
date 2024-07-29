@@ -242,8 +242,13 @@ dependencies = [
  "arboard",
  "async-openai",
  "clap",
+ "clap-verbosity-flag",
+ "log",
  "markdown-split",
  "tokio",
+ "tracing",
+ "tracing-log",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -254,6 +259,16 @@ checksum = "35723e6a11662c2afb578bcf0b88bf6ea8e21282a953428f240574fcc3a2b5b3"
 dependencies = [
  "clap_builder",
  "clap_derive",
+]
+
+[[package]]
+name = "clap-verbosity-flag"
+version = "2.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63d19864d6b68464c59f7162c9914a0b569ddc2926b4a2d71afe62a9738eff53"
+dependencies = [
+ "clap",
+ "log",
 ]
 
 [[package]]

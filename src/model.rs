@@ -2,7 +2,7 @@ use std::{fmt, fmt::Display, str::FromStr};
 
 use anyhow::{bail, Error, Result};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Model {
     Gpt4O,
     Gpt4OMini,

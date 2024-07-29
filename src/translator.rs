@@ -14,6 +14,7 @@ use async_openai::{
     Client,
 };
 use clap::Parser;
+use log::debug;
 
 use crate::model::Model;
 
@@ -29,7 +30,7 @@ impl State for ReadyForTranslation {}
 /// consistency.
 pub type Uninitialized = TranslationConfiguration;
 
-#[derive(Parser)]
+#[derive(Parser, Debug, Clone)]
 #[clap(about, version)]
 pub struct TranslationConfiguration {
     /// OpenAI API key. You can also set the `OPENAI_API_KEY` environment variable.
@@ -121,6 +122,15 @@ impl Translator<Uninitialized> {
             source_language,
             target_language,
         } = config;
+        debug!("Translation configuration:");
+        debug!("- OpenAI API key: <redacted>");
+        debug!("- Model: {}", model);
+        debug!("- Max tokens: {}", max_tokens);
+        debug!("- Temperature: {}", temperature);
+        debug!("- Frequency penalty: {}", frequency_penalty);
+        debug!("- Prompt file: {:?}", prompt_file);
+        debug!("- Source language: {}", source_language);
+        debug!("- Target language: {}", target_language);
 
         let client = Client::with_config(OpenAIConfig::default().with_api_key(openai_api_key));
 
@@ -132,6 +142,7 @@ impl Translator<Uninitialized> {
             .build()?;
 
         let prompt = get_prompt(prompt_file, &source_language, &target_language)?;
+        debug!("Prompt:\n----------------------------------------\n{prompt}\n----------------------------------------");
 
         Ok(Translator {
             state: ReadyForTranslation { client, request, prompt },
@@ -144,7 +155,7 @@ impl Translator<ReadyForTranslation> {
         let mut request = self.request.clone();
         request.messages = vec![
             ChatCompletionRequestSystemMessageArgs::default()
-                .content("You are a helpful English technical writing assistant.")
+                .content("You are a helpful technical writing assistant.")
                 .build()?
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
