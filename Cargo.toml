@@ -1,6 +1,6 @@
 [package]
 name = "chatgpt-translator"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 description = "An OpenAI-powered Markdown document tranlator. Translate your clipboard text into any language."
 
@@ -16,6 +16,13 @@ path = "src/lib.rs"
 anyhow = "1.0.86"
 arboard = "3.4.0"
 async-openai = "0.23.4"
-clap = { version = "4.5.11", features = ["derive", "env"] }
-tokio = { version = "1.39.2", features = ["full"] }
-markdown-split = { git = "https://github.com/0x6b/markdown-split", tag = "v0.2.0" }
+clap = { version = "4.5.11", default-features = false, features = ["std", "help", "color", "wrap_help", "derive", "env"] }
+tokio = { version = "1.39.2", default-features = false, features = ["rt-multi-thread"] }
+markdown-split = { git = "https://github.com/0x6b/markdown-split", tag = "v0.3.0" }
+
+# Logging
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+log = "0.4.22"
+clap-verbosity-flag = "2.2.1"
+tracing-log = "0.2.0"
