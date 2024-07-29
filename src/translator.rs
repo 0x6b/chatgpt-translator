@@ -20,16 +20,22 @@ use crate::model::Model;
 
 static DEFAULT_PROMPT: &str = include_str!("../default-prompt.txt");
 
+/// Represents the state of the translator.
 pub trait State {}
 
+/// The initial state of the translator is `Uninitialized`.
 impl State for TranslationConfiguration {}
-
-impl State for ReadyForTranslation {}
 
 /// An alias for the `TranslationConfiguration` which represents the uninitialized state, for
 /// consistency.
 pub type Uninitialized = TranslationConfiguration;
 
+/// After the configuration is parsed, the state transitions to `ReadyForTranslation`, and as you
+/// can imagine, it's ready to translate text.
+impl State for ReadyForTranslation {}
+
+/// Configuration for the translation. The structs derive the `Parser` trait from `clap` to be
+/// conveniently parsed from the command line arguments.
 #[derive(Parser, Debug, Clone)]
 #[clap(about, version)]
 pub struct TranslationConfiguration {
@@ -73,12 +79,14 @@ pub struct TranslationConfiguration {
     pub target_language: String,
 }
 
+/// Represents the state of the translator after the configuration is parsed and ready to translate.
 pub struct ReadyForTranslation {
     pub(crate) client: Client<OpenAIConfig>,
     pub(crate) request: CreateChatCompletionRequest,
     pub prompt: String,
 }
 
+/// The main struct that represents the translator. It holds the state of the translator.
 pub struct Translator<S>
 where
     S: State,
@@ -86,6 +94,7 @@ where
     state: S,
 }
 
+/// Implement deref and deref_mut for the `Translator` struct to access the state easily.
 impl<S> Deref for Translator<S>
 where
     S: State,
@@ -107,10 +116,12 @@ where
 }
 
 impl Translator<Uninitialized> {
+    /// Create a new translator with parsing the command line arguments.
     pub fn new() -> Result<Translator<ReadyForTranslation>> {
         Self::from(TranslationConfiguration::parse())
     }
 
+    /// Create a new translator from given [`TranslationConfiguration`].
     pub fn from(config: TranslationConfiguration) -> Result<Translator<ReadyForTranslation>> {
         let Uninitialized {
             openai_api_key,
@@ -151,6 +162,7 @@ impl Translator<Uninitialized> {
 }
 
 impl Translator<ReadyForTranslation> {
+    /// Translate the provided text.
     pub async fn translate(&self, input: &str) -> Result<Vec<String>> {
         let mut request = self.request.clone();
         request.messages = vec![
@@ -180,6 +192,7 @@ impl Translator<ReadyForTranslation> {
     }
 }
 
+/// Get the prompt from the provided path or use the default prompt.
 fn get_prompt(
     path: Option<PathBuf>,
     source_language: &str,

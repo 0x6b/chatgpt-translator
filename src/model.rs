@@ -2,6 +2,7 @@ use std::{fmt, fmt::Display, str::FromStr};
 
 use anyhow::{bail, Error, Result};
 
+/// The model to use for the completion. See [Models - OpenAI API](https://platform.openai.com/docs/models/chatgpt) for more information.
 #[derive(Clone, Debug)]
 pub enum Model {
     Gpt4O,

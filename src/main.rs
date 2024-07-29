@@ -8,7 +8,7 @@ use tracing_log::AsTrace;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(flatten)]
-    pub translation: TranslationConfiguration,
+    pub config: TranslationConfiguration,
 
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
         .trim()
         .to_string();
 
-    let translator = Translator::from(args.translation)?;
+    let translator = Translator::from(args.config)?;
 
     for part in split(&text, None)? {
         translator.translate(part).await?.iter().for_each(|l| println!("{l}"));
