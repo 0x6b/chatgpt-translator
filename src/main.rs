@@ -14,12 +14,6 @@ pub struct Args {
     verbose: clap_verbosity_flag::Verbosity,
 }
 
-impl From<Args> for TranslationConfiguration {
-    fn from(args: Args) -> Self {
-        args.translation
-    }
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
@@ -33,7 +27,7 @@ async fn main() -> Result<()> {
         .trim()
         .to_string();
 
-    let translator = Translator::from(args.into())?;
+    let translator = Translator::from(args.translation)?;
 
     for part in split(&text, None)? {
         translator.translate(part).await?.iter().for_each(|l| println!("{l}"));
