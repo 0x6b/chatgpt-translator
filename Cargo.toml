@@ -16,6 +16,6 @@ path = "src/lib.rs"
 anyhow = "1.0.86"
 arboard = "3.4.0"
 async-openai = "0.23.4"
-clap = { version = "4.5.11", features = ["derive", "env"] }
-tokio = { version = "1.39.2", features = ["full"] }
+clap = { version = "4.5.11", default-features = false, features = ["std", "help", "color", "wrap_help", "derive", "env"] }
+tokio = { version = "1.39.2", default-features = false, features = ["rt-multi-thread"] }
 markdown-split = { git = "https://github.com/0x6b/markdown-split", tag = "v0.2.0" }
