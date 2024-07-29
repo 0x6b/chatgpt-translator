@@ -7,13 +7,17 @@ use crate::model::Model;
 
 pub trait State {}
 
-impl State for Uninitialized {}
+impl State for TranslationConfiguration {}
 
 impl State for ReadyForTranslation {}
 
+/// An alias for the `TranslationConfiguration` which also represents the uninitialized
+/// state, for consistency.
+pub type Uninitialized = TranslationConfiguration;
+
 #[derive(Parser)]
 #[clap(about, version)]
-pub struct Uninitialized {
+pub struct TranslationConfiguration {
     /// OpenAI API key. You can also set the `OPENAI_API_KEY` environment variable.
     #[arg(short, long, env = "OPENAI_API_KEY")]
     pub openai_api_key: String,

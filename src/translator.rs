@@ -15,7 +15,10 @@ use async_openai::{
 };
 use clap::Parser;
 
-use crate::state::{ReadyForTranslation, State, Uninitialized};
+use crate::{
+    state::{ReadyForTranslation, State, Uninitialized},
+    TranslationConfiguration,
+};
 
 pub struct Translator<S>
 where
@@ -44,8 +47,12 @@ where
     }
 }
 
-impl Translator<Uninitialized> {
+impl Translator<TranslationConfiguration> {
     pub fn new() -> Result<Translator<ReadyForTranslation>> {
+        Self::from(TranslationConfiguration::parse())
+    }
+
+    pub fn from(config: TranslationConfiguration) -> Result<Translator<ReadyForTranslation>> {
         let Uninitialized {
             openai_api_key,
             model,
@@ -55,13 +62,13 @@ impl Translator<Uninitialized> {
             prompt_file,
             source_language,
             target_language,
-        } = Uninitialized::parse();
+        } = config;
 
         let client = Client::with_config(OpenAIConfig::default().with_api_key(openai_api_key));
 
         let request = CreateChatCompletionRequestArgs::default()
-            .max_tokens(max_tokens)
             .model(model)
+            .max_tokens(max_tokens)
             .temperature(temperature)
             .frequency_penalty(frequency_penalty)
             .build()?;

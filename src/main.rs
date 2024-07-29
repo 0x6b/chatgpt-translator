@@ -1,6 +1,7 @@
 use anyhow::Result;
 use arboard::Clipboard;
-use chatgpt_translator::Translator;
+use chatgpt_translator::{TranslationConfiguration, Translator};
+use clap::Parser;
 use markdown_split::split;
 
 #[tokio::main]
@@ -11,11 +12,9 @@ async fn main() -> Result<()> {
         .trim()
         .to_string();
 
-    let parts = split(&text, None)?;
+    let translator = Translator::from(TranslationConfiguration::parse())?;
 
-    let translator = Translator::new()?;
-
-    for part in parts {
+    for part in split(&text, None)? {
         translator.translate(part).await?.iter().for_each(|l| println!("{l}"));
         println!();
     }
