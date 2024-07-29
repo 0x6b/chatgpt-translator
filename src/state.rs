@@ -38,8 +38,8 @@ pub struct Uninitialized {
     #[arg(long, default_value = "1.0")]
     pub frequency_penalty: f32,
 
-    /// A path to a file containing prompt to use for the translation. If not provided, the prompt
-    /// will be read from `$XDG_CONFIG_HOME/chatgpt_translator/prompt.txt`.
+    /// A path to a file containing prompt to use for the translation. If not provided or failed to
+    /// read a provided path, the default prompt will be used.
     #[arg(long)]
     pub prompt_file: Option<PathBuf>,
 
