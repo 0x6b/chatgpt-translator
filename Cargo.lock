@@ -881,8 +881,8 @@ dependencies = [
 
 [[package]]
 name = "markdown-split"
-version = "0.2.0"
-source = "git+https://github.com/0x6b/markdown-split?tag=v0.2.0#125f8e22a0be98e610ef6738403f2255a6fa6074"
+version = "0.3.0"
+source = "git+https://github.com/0x6b/markdown-split?tag=v0.3.0#c7b3de7ed234f613df2bc5361fb2649a4120c151"
 dependencies = [
  "anyhow",
  "itertools",
