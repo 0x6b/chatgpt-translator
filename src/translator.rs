@@ -57,7 +57,9 @@ pub struct TranslationConfiguration {
     pub frequency_penalty: f32,
 
     /// A path to a file containing prompt to use for the translation. If not provided or failed to
-    /// read a provided path, the default prompt will be used.
+    /// read a provided path, the default prompt will be used. The prompt can contain `{source}`
+    /// and `{target}` placeholders which will be replaced with the source and target language
+    /// options, respectively.
     #[arg(long)]
     pub prompt_file: Option<PathBuf>,
 
