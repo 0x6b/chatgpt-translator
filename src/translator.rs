@@ -20,25 +20,30 @@ use crate::model::Model;
 
 static DEFAULT_PROMPT: &str = include_str!("../default-prompt.txt");
 
-/// Represents the state of the translator.
+/// A marker trait to represent the state of the [`Translator`]. The state transitions from
+/// [`Uninitialized`] to [`ReadyForTranslation`]. The type system enforces the state transitions to
+/// prevent using the translator in an invalid state. The methods of the [`Translator`] struct are
+/// implemented based on the state, which means that the compiler helps to prevent using the
+/// translator in an invalid state.
 pub trait State {}
 
-/// The initial state of the translator is `Uninitialized`.
-impl State for TranslationConfiguration {}
+/// The initial state of the translator is [`Uninitialized`], or its alias
+/// [`TranslatorConfiguration`].
+impl State for TranslatorConfiguration {}
 
-/// An alias for the `TranslationConfiguration` which represents the uninitialized state, for
-/// consistency.
-pub type Uninitialized = TranslationConfiguration;
+/// An alias for the [`TranslatorConfiguration`]. This alias is just for clarity and consistency to
+/// have a type name that represents the uninitialized state.
+pub type Uninitialized = TranslatorConfiguration;
 
-/// After the configuration is parsed, the state transitions to `ReadyForTranslation`, and as you
-/// can imagine, it's ready to translate text.
+/// After the configuration is parsed, the state transitions to [`ReadyForTranslation`], and as you
+/// can imagine, it's ready to translate given text.
 impl State for ReadyForTranslation {}
 
-/// Configuration for the translation. The structs derive the `Parser` trait from `clap` to be
-/// conveniently parsed from the command line arguments.
+/// Configuration for the [`Translator`]. The structs derive the [`Parser`] trait from [`clap`] to
+/// be conveniently constructed from the command line arguments.
 #[derive(Parser, Debug, Clone)]
 #[clap(about, version)]
-pub struct TranslationConfiguration {
+pub struct TranslatorConfiguration {
     /// OpenAI API key. You can also set the `OPENAI_API_KEY` environment variable.
     #[arg(short, long, env = "OPENAI_API_KEY")]
     pub openai_api_key: String,
@@ -94,7 +99,7 @@ where
     state: S,
 }
 
-/// Implement deref and deref_mut for the `Translator` struct to access the state easily.
+/// Implement deref and deref_mut for the [`Translator`] struct to access its inner state easily.
 impl<S> Deref for Translator<S>
 where
     S: State,
@@ -118,12 +123,12 @@ where
 impl Translator<Uninitialized> {
     /// Create a new translator with parsing the command line arguments.
     pub fn new() -> Result<Translator<ReadyForTranslation>> {
-        Self::from(TranslationConfiguration::parse())
+        Self::from(TranslatorConfiguration::parse())
     }
 
-    /// Create a new translator from given [`TranslationConfiguration`].
-    pub fn from(config: TranslationConfiguration) -> Result<Translator<ReadyForTranslation>> {
-        let Uninitialized {
+    /// Create a new translator from given [`TranslatorConfiguration`].
+    pub fn from(config: TranslatorConfiguration) -> Result<Translator<ReadyForTranslation>> {
+        let TranslatorConfiguration {
             openai_api_key,
             model,
             max_tokens,

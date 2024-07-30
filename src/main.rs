@@ -1,6 +1,6 @@
 use anyhow::Result;
 use arboard::Clipboard;
-use chatgpt_translator::{TranslationConfiguration, Translator};
+use chatgpt_translator::{Translator, TranslatorConfiguration};
 use clap::Parser;
 use markdown_split::split;
 use tracing_log::AsTrace;
@@ -8,7 +8,7 @@ use tracing_log::AsTrace;
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(flatten)]
-    pub config: TranslationConfiguration,
+    pub config: TranslatorConfiguration,
 
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
