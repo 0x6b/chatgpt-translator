@@ -18,7 +18,8 @@ use log::debug;
 
 use crate::model::Model;
 
-static DEFAULT_PROMPT: &str = include_str!("../default-prompt.txt");
+static DEFAULT_SYSTEM_PROMPT: &str = include_str!("../assets/default-system-prompt.txt");
+static DEFAULT_USER_PROMPT: &str = include_str!("../assets/default-user-prompt.txt");
 
 /// A marker trait to represent the state of the [`Translator`]. The state transitions from
 /// [`Uninitialized`] to [`ReadyForTranslation`]. The type system enforces the state transitions to
@@ -68,12 +69,18 @@ pub struct TranslatorConfiguration {
     #[arg(long, default_value = "1.0")]
     pub frequency_penalty: f32,
 
-    /// A path to a file containing prompt to use for the translation. If not provided or failed to
-    /// read a provided path, the default prompt will be used. The prompt can contain `{source}`
-    /// and `{target}` placeholders which will be replaced with the source and target language
-    /// options, respectively.
+    /// A path to a file containing system prompt to use for the translation. If not provided or
+    /// failed to read a provided path, the default system prompt will be used. The system prompt
+    /// is a fixed message that will be used for all translations.
     #[arg(long)]
-    pub prompt_file: Option<PathBuf>,
+    pub system_prompt_file: Option<PathBuf>,
+
+    /// A path to a file containing user prompt to use for the translation. If not provided or
+    /// failed to read a provided path, the default prompt will be used. The prompt can contain
+    /// `{source}` and `{target}` placeholders which will be replaced with the source and
+    /// target language options, respectively.
+    #[arg(long)]
+    pub user_prompt_file: Option<PathBuf>,
 
     /// Original language of the text to translate
     #[arg(short, long, default_value = "Japanese")]
@@ -88,7 +95,8 @@ pub struct TranslatorConfiguration {
 pub struct ReadyForTranslation {
     pub(crate) client: Client<OpenAIConfig>,
     pub(crate) request: CreateChatCompletionRequest,
-    pub prompt: String,
+    pub user_prompt: String,
+    pub system_prompt: String,
 }
 
 /// The main struct that represents the translator. It holds the state of the translator.
@@ -134,7 +142,8 @@ impl Translator<Uninitialized> {
             max_tokens,
             temperature,
             frequency_penalty,
-            prompt_file,
+            system_prompt_file,
+            user_prompt_file,
             source_language,
             target_language,
         } = config;
@@ -144,7 +153,8 @@ impl Translator<Uninitialized> {
         debug!("- Max tokens: {}", max_tokens);
         debug!("- Temperature: {}", temperature);
         debug!("- Frequency penalty: {}", frequency_penalty);
-        debug!("- Prompt file: {:?}", prompt_file);
+        debug!("- System prompt file: {:?}", system_prompt_file);
+        debug!("- User prompt file: {:?}", user_prompt_file);
         debug!("- Source language: {}", source_language);
         debug!("- Target language: {}", target_language);
 
@@ -157,11 +167,13 @@ impl Translator<Uninitialized> {
             .frequency_penalty(frequency_penalty)
             .build()?;
 
-        let prompt = get_prompt(prompt_file, &source_language, &target_language)?;
-        debug!("Prompt:\n----------------------------------------\n{prompt}\n----------------------------------------");
+        let system_prompt = get_system_prompt(system_prompt_file)?;
+        debug!("System prompt:\n----------------------------------------\n{system_prompt}\n----------------------------------------");
+        let user_prompt = get_user_prompt(user_prompt_file, &source_language, &target_language)?;
+        debug!("User prompt:\n----------------------------------------\n{user_prompt}\n----------------------------------------");
 
         Ok(Translator {
-            state: ReadyForTranslation { client, request, prompt },
+            state: ReadyForTranslation { client, request, system_prompt, user_prompt },
         })
     }
 }
@@ -172,11 +184,11 @@ impl Translator<ReadyForTranslation> {
         let mut request = self.request.clone();
         request.messages = vec![
             ChatCompletionRequestSystemMessageArgs::default()
-                .content("You are a helpful technical writing assistant.")
+                .content(&self.system_prompt)
                 .build()?
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
-                .content(format!("{}\n{input}", self.prompt))
+                .content(format!("{}\n{input}", self.user_prompt))
                 .build()?
                 .into(),
         ];
@@ -197,15 +209,23 @@ impl Translator<ReadyForTranslation> {
     }
 }
 
-/// Get the prompt from the provided path or use the default prompt.
-fn get_prompt(
+/// Get the system prompt from the provided path or use the default system prompt.
+fn get_system_prompt(path: Option<PathBuf>) -> Result<String> {
+    Ok(match path {
+        Some(p) => read_to_string(&p).unwrap_or_else(|_| DEFAULT_SYSTEM_PROMPT.to_string()),
+        None => DEFAULT_SYSTEM_PROMPT.to_string(),
+    })
+}
+
+/// Get the user prompt from the provided path or use the default prompt.
+fn get_user_prompt(
     path: Option<PathBuf>,
     source_language: &str,
     target_language: &str,
 ) -> Result<String> {
     let prompt = match path {
-        Some(p) => read_to_string(&p).unwrap_or_else(|_| DEFAULT_PROMPT.to_string()),
-        None => DEFAULT_PROMPT.to_string(),
+        Some(p) => read_to_string(&p).unwrap_or_else(|_| DEFAULT_USER_PROMPT.to_string()),
+        None => DEFAULT_USER_PROMPT.to_string(),
     };
     let prompt = prompt
         .replace("{source}", source_language)
