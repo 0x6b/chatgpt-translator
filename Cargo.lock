@@ -236,7 +236,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chatgpt-translator"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "arboard",
@@ -881,8 +881,8 @@ dependencies = [
 
 [[package]]
 name = "markdown-split"
-version = "0.3.0"
-source = "git+https://github.com/0x6b/markdown-split?tag=v0.3.0#c7b3de7ed234f613df2bc5361fb2649a4120c151"
+version = "0.3.1"
+source = "git+https://github.com/0x6b/markdown-split?tag=v0.3.1#ccd0fed60d587c9fe4b5b29c7ce53ee88934fc7a"
 dependencies = [
  "anyhow",
  "itertools",
