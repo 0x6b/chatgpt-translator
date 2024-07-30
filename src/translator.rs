@@ -82,6 +82,16 @@ pub struct TranslatorConfiguration {
     #[arg(long)]
     pub user_prompt_file: Option<PathBuf>,
 
+    /// System prompt text to use for the translation. If provided, it will override the system
+    /// prompt file.
+    #[arg(long)]
+    pub system_prompt_text: Option<String>,
+
+    /// User prompt text to use for the translation. If provided, it will override the user prompt
+    /// file.
+    #[arg(long)]
+    pub user_prompt_text: Option<String>,
+
     /// Original language of the text to translate
     #[arg(short, long, default_value = "Japanese")]
     pub source_language: String,
@@ -144,6 +154,8 @@ impl Translator<Uninitialized> {
             frequency_penalty,
             system_prompt_file,
             user_prompt_file,
+            system_prompt_text,
+            user_prompt_text,
             source_language,
             target_language,
         } = config;
@@ -155,6 +167,8 @@ impl Translator<Uninitialized> {
         debug!("- Frequency penalty: {}", frequency_penalty);
         debug!("- System prompt file: {:?}", system_prompt_file);
         debug!("- User prompt file: {:?}", user_prompt_file);
+        debug!("- System prompt text: {:?}", system_prompt_text);
+        debug!("- User prompt text: {:?}", user_prompt_text);
         debug!("- Source language: {}", source_language);
         debug!("- Target language: {}", target_language);
 
@@ -167,9 +181,19 @@ impl Translator<Uninitialized> {
             .frequency_penalty(frequency_penalty)
             .build()?;
 
-        let system_prompt = get_system_prompt(system_prompt_file)?;
+        let mut system_prompt = get_system_prompt(system_prompt_file)?;
+        if let Some(t) = system_prompt_text {
+            debug!("Overriding system prompt with provided text");
+            system_prompt = t;
+        }
         debug!("System prompt:\n----------------------------------------\n{system_prompt}\n----------------------------------------");
-        let user_prompt = get_user_prompt(user_prompt_file, &source_language, &target_language)?;
+
+        let mut user_prompt =
+            get_user_prompt(user_prompt_file, &source_language, &target_language)?;
+        if let Some(t) = user_prompt_text {
+            debug!("Overriding user prompt with provided text");
+            user_prompt = t;
+        }
         debug!("User prompt:\n----------------------------------------\n{user_prompt}\n----------------------------------------");
 
         Ok(Translator {
