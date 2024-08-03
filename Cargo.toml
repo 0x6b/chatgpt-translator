@@ -13,11 +13,23 @@ name = "chatgpt_translator"
 path = "src/lib.rs"
 
 [dependencies]
+# Error handling
 anyhow = "1.0"
+
+# Clipboard management
 arboard = "3.4"
+
+# OpenAI API
 async-openai = "0.23"
+
+# Command line arguments
 clap = { version = "4.5", default-features = false, features = ["std", "help", "color", "wrap_help", "derive", "env"] }
+
+# Async runtime
 tokio = { version = "1.39", default-features = false, features = ["rt-multi-thread"] }
+
+# Markdown handling
+markdown = "1.0.0-alpha"
 markdown-split = { git = "https://github.com/0x6b/markdown-split", tag = "v0.3.1" }
 
 # Logging
