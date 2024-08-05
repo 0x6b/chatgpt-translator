@@ -181,7 +181,12 @@ impl Translator<Uninitialized> {
             .frequency_penalty(frequency_penalty)
             .build()?;
 
-        let mut system_prompt = get_system_prompt(system_prompt_file)?;
+        let mut system_prompt = get_prompt(
+            system_prompt_file,
+            DEFAULT_SYSTEM_PROMPT,
+            &source_language,
+            &target_language,
+        )?;
         if let Some(t) = system_prompt_text {
             debug!("Overriding system prompt with provided text");
             system_prompt = t;
@@ -189,7 +194,7 @@ impl Translator<Uninitialized> {
         debug!("System prompt:\n----------------------------------------\n{system_prompt}\n----------------------------------------");
 
         let mut user_prompt =
-            get_user_prompt(user_prompt_file, &source_language, &target_language)?;
+            get_prompt(user_prompt_file, DEFAULT_USER_PROMPT, &source_language, &target_language)?;
         if let Some(t) = user_prompt_text {
             debug!("Overriding user prompt with provided text");
             user_prompt = t;
@@ -206,6 +211,7 @@ impl Translator<ReadyForTranslation> {
     /// Translate the provided text.
     pub async fn translate(&self, input: &str) -> Result<Vec<String>> {
         let mut request = self.request.clone();
+        debug!("Provided input:\n----------------------------------------\n{input}\n----------------------------------------");
         request.messages = vec![
             ChatCompletionRequestSystemMessageArgs::default()
                 .content(&self.system_prompt)
@@ -233,27 +239,19 @@ impl Translator<ReadyForTranslation> {
     }
 }
 
-/// Get the system prompt from the provided path or use the default system prompt.
-fn get_system_prompt(path: Option<PathBuf>) -> Result<String> {
-    Ok(match path {
-        Some(p) => read_to_string(&p).unwrap_or_else(|_| DEFAULT_SYSTEM_PROMPT.to_string()),
-        None => DEFAULT_SYSTEM_PROMPT.to_string(),
-    })
-}
-
-/// Get the user prompt from the provided path or use the default prompt.
-fn get_user_prompt(
+/// Get the prompt from the provided path or use the default prompt.
+fn get_prompt(
     path: Option<PathBuf>,
+    default: &str,
     source_language: &str,
     target_language: &str,
 ) -> Result<String> {
     let prompt = match path {
-        Some(p) => read_to_string(&p).unwrap_or_else(|_| DEFAULT_USER_PROMPT.to_string()),
-        None => DEFAULT_USER_PROMPT.to_string(),
-    };
-    let prompt = prompt
-        .replace("{source}", source_language)
-        .replace("{target}", target_language);
+        Some(p) => read_to_string(&p).unwrap_or(default.to_string()),
+        None => default.to_string(),
+    }
+    .replace("{source}", source_language)
+    .replace("{target}", target_language);
 
-    Ok(prompt)
+    Ok(prompt.to_string())
 }
