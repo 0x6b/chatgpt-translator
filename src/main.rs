@@ -15,7 +15,7 @@ pub struct Args {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
 
-    /// Translate input → two-column rich text → system clipboard
+    /// Translate input → two-column HTML table → system clipboard
     #[arg(short = 'g', long)]
     pub two_column: bool,
 }
@@ -45,25 +45,32 @@ async fn main() -> Result<()> {
 
         let options = Options::gfm();
 
-        let html =
+        let html = format!(
+            "<table>{}</table>",
             document
                 .fragments
-                .into_iter()
-                .zip(translated)
+                .iter()
+                .zip(&translated)
                 .fold(String::new(), |acc, (o, t)| {
                     format!(
                         "{}<tr><td>{}</td><td>{}</td></tr>",
                         acc,
-                        to_html_with_options(&o, &options).unwrap(),
-                        to_html_with_options(&t, &options).unwrap()
+                        to_html_with_options(o, &options).unwrap(),
+                        to_html_with_options(t, &options).unwrap()
                     )
-                });
+                })
+        );
+
+        let text = document
+            .fragments
+            .iter()
+            .chain(&translated)
+            .fold(String::new(), |acc, t| format!("{}\n{}\n", acc, t.trim()));
 
         info!("Setting translated text to clipboard");
         Clipboard::new()
             .expect("failed to access system clipboard")
-            .set_html(format!("<table>{text}</table>"), Some(text))
-            .unwrap();
+            .set_html(html, Some(text))?;
     } else {
         for part in split(&text, None)? {
             translator.translate(part).await?.iter().for_each(|l| println!("{l}"));
