@@ -84,8 +84,12 @@ async fn main() -> Result<()> {
             .expect("failed to access system clipboard")
             .set_html(html, Some(text))?;
     } else {
-        for part in split(&text, None)? {
-            translator.translate(part).await?.iter().for_each(|l| println!("{l}"));
+        for fragment in split(&text, None)? {
+            translator
+                .translate(fragment)
+                .await?
+                .iter()
+                .for_each(|l| println!("{l}"));
             println!();
         }
     }
