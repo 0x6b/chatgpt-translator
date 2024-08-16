@@ -7,7 +7,7 @@ use markdown_split::split;
 use crate::{ReadyForTranslation, Translator};
 
 pub struct Document {
-    fragments: Vec<String>,
+    pub fragments: Vec<String>,
 }
 
 impl TryFrom<String> for Document {
@@ -27,7 +27,7 @@ impl Document {
     pub async fn translate(
         &self,
         translator: &Translator<ReadyForTranslation>,
-    ) -> Result<(Vec<String>, Vec<String>)> {
+    ) -> Result<Vec<String>> {
         let mut result = Vec::new();
 
         let mut count = 1;
@@ -38,6 +38,6 @@ impl Document {
             count += 1;
         }
 
-        Ok((self.fragments.clone(), result))
+        Ok(result)
     }
 }

@@ -41,21 +41,23 @@ async fn main() -> Result<()> {
         let document = Document::try_from(text)?;
 
         info!("Translating fragments");
-        let (original, translated) = document.translate(&translator).await?;
+        let translated = document.translate(&translator).await?;
 
         let options = Options::gfm();
 
-        let text = original
-            .into_iter()
-            .zip(translated)
-            .fold(String::new(), |acc, (o, t)| {
-                format!(
-                    "{}<tr><td>{}</td><td>{}</td></tr>",
-                    acc,
-                    to_html_with_options(&o, &options).unwrap(),
-                    to_html_with_options(&t, &options).unwrap()
-                )
-            });
+        let html =
+            document
+                .fragments
+                .into_iter()
+                .zip(translated)
+                .fold(String::new(), |acc, (o, t)| {
+                    format!(
+                        "{}<tr><td>{}</td><td>{}</td></tr>",
+                        acc,
+                        to_html_with_options(&o, &options).unwrap(),
+                        to_html_with_options(&t, &options).unwrap()
+                    )
+                });
 
         info!("Setting translated text to clipboard");
         Clipboard::new()
