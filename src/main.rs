@@ -5,6 +5,7 @@ use clap::Parser;
 use log::info;
 use markdown::{to_html_with_options, Options};
 use markdown_split::split;
+use tokio::io::{stdin, AsyncReadExt};
 use tracing_log::AsTrace;
 
 #[derive(Parser, Debug)]
@@ -14,6 +15,10 @@ pub struct Args {
 
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
+
+    /// Read text from the system clipboard
+    #[arg(short, long)]
+    pub clipboard: bool,
 
     /// Translate input → two-column HTML table → system clipboard
     #[arg(short = 'g', long)]
@@ -27,12 +32,19 @@ async fn main() -> Result<()> {
         .with_max_level(args.verbose.log_level_filter().as_trace())
         .init();
 
-    info!("Reading text from clipboard");
-    let text = Clipboard::new()
-        .expect("failed to access system clipboard")
-        .get_text()?
-        .trim()
-        .to_string();
+    let text = if args.clipboard {
+        info!("Reading text from clipboard");
+        Clipboard::new()
+            .expect("failed to access system clipboard")
+            .get_text()?
+            .trim()
+            .to_string()
+    } else {
+        info!("Reading text from stdin");
+        let mut buffer = String::new();
+        stdin().read_to_string(&mut buffer).await?;
+        buffer.trim().to_string()
+    };
 
     let translator = Translator::from(args.config)?;
 
