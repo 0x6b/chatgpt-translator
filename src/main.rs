@@ -1,3 +1,5 @@
+use std::io::IsTerminal;
+
 use anyhow::Result;
 use arboard::Clipboard;
 use chatgpt_translator::{Document, Translator, TranslatorConfiguration};
@@ -16,10 +18,6 @@ pub struct Args {
     #[command(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
 
-    /// Read text from the system clipboard
-    #[arg(short, long)]
-    pub clipboard: bool,
-
     /// Translate input → two-column HTML table → system clipboard
     #[arg(short = 'g', long)]
     pub two_column: bool,
@@ -32,7 +30,7 @@ async fn main() -> Result<()> {
         .with_max_level(args.verbose.log_level_filter().as_trace())
         .init();
 
-    let text = if args.clipboard {
+    let text = if std::io::stdin().is_terminal() {
         info!("Reading text from clipboard");
         Clipboard::new()
             .expect("failed to access system clipboard")

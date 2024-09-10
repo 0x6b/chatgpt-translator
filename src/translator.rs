@@ -214,7 +214,7 @@ impl Translator<ReadyForTranslation> {
         debug!("Provided input:\n----------------------------------------\n{input}\n----------------------------------------");
         request.messages = vec![
             ChatCompletionRequestSystemMessageArgs::default()
-                .content(&self.system_prompt)
+                .content(self.system_prompt.clone())
                 .build()?
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
