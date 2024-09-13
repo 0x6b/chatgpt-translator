@@ -11,6 +11,7 @@ use tokio::io::{stdin, AsyncReadExt};
 use tracing_log::AsTrace;
 
 #[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
 pub struct Args {
     #[command(flatten)]
     pub config: TranslatorConfiguration,
