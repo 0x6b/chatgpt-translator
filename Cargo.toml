@@ -2,7 +2,7 @@
 name = "chatgpt-translator"
 version = "0.10.0"
 edition = "2021"
-description = "An OpenAI-powered Markdown document translator. Translate your clipboard text into from/to any language."
+description = "An OpenAI-powered Markdown document translator. Translate your clipboard/stdin text into from/to any language."
 
 [[bin]]
 name = "ct"
@@ -17,7 +17,7 @@ path = "src/lib.rs"
 anyhow = "1.0"
 
 # Clipboard management
-arboard = "3.4"
+arboard = { version = "3.4", default-features = false }
 
 # OpenAI API
 async-openai = "0.24"
