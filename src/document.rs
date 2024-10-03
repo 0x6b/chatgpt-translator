@@ -46,7 +46,18 @@ impl Document {
 
         let mut count = 1;
         for fragment in &self.fragments {
-            info!("Translating fragment {}/{}", count, self.fragments.len());
+            info!(
+                "Translating fragment {}/{}: {} ...",
+                count,
+                self.fragments.len(),
+                fragment
+                    .lines()
+                    .next()
+                    .unwrap_or_default()
+                    .chars()
+                    .take(20)
+                    .collect::<String>()
+            );
             let translations = translator.translate(fragment).await?;
             result.extend(translations.iter().map(|t| t.to_string()));
             count += 1;
