@@ -1,13 +1,10 @@
-use std::io::IsTerminal;
-
 use anyhow::Result;
-use arboard::Clipboard;
 use chatgpt_translator::{Document, Translator, TranslatorConfiguration};
 use clap::Parser;
 use log::info;
 use markdown::{to_html_with_options, Options};
 use markdown_split::split;
-use tokio::io::{stdin, AsyncReadExt};
+use stdin_or_clipboard::get_text_from_stdin_or_clipboard;
 use tracing_log::AsTrace;
 
 #[derive(Parser, Debug)]
@@ -31,20 +28,7 @@ async fn main() -> Result<()> {
         .with_max_level(args.verbose.log_level_filter().as_trace())
         .init();
 
-    let text = if std::io::stdin().is_terminal() {
-        info!("Reading text from clipboard");
-        Clipboard::new()
-            .expect("failed to access system clipboard")
-            .get_text()?
-            .trim()
-            .to_string()
-    } else {
-        info!("Reading text from stdin");
-        let mut buffer = String::new();
-        stdin().read_to_string(&mut buffer).await?;
-        buffer.trim().to_string()
-    };
-
+    let (text, clipboard) = get_text_from_stdin_or_clipboard().await?;
     let translator = Translator::from(args.config)?;
 
     if args.two_column {
@@ -79,9 +63,12 @@ async fn main() -> Result<()> {
             .fold(String::new(), |acc, t| format!("{}\n{}\n", acc, t.trim()));
 
         info!("Setting translated text to clipboard");
-        Clipboard::new()
-            .expect("failed to access system clipboard")
-            .set_html(html, Some(text))?;
+        if let Some(mut clipboard) = clipboard {
+            if clipboard.set_html(&html, Some(&text)).is_ok() {
+                println!("{text}");
+                return Ok(());
+            }
+        }
     } else {
         for fragment in split(&text, None)? {
             translator

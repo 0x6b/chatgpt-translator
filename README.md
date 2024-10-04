@@ -42,7 +42,7 @@ $ echo "**こんにちは**、_世界_" | ct --source-language Japanese --target
 **Hello**, _World_
 ```
 
-Notable options include:
+Notable option:
 
 - `--two-column` which will generate a two-column HTML table with the original text on the left and the translated text on the right. The output will be copied to the system clipboard. It'll be useful for translating Markdown documents, then pasting it to Google Docs or other word processors.
 
