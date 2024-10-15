@@ -1,3 +1,3 @@
-Please translate the following Markdown text, after the `====` line, into the target language. Make sure to follow the instructions in the system prompt.
+Translate the following Markdown content from {source} into {target} according to the instructions provided in the system prompt. Please ensure that all Markdown formatting, code blocks, and other specified elements remain unaltered. Only the non-code text should be translated.
 
-====
+---
