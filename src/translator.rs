@@ -16,7 +16,7 @@ use async_openai::{
 use clap::Parser;
 use log::debug;
 
-use crate::model::Model;
+use crate::{Language, Model};
 
 static DEFAULT_SYSTEM_PROMPT: &str = include_str!("../assets/default-system-prompt.txt");
 static DEFAULT_USER_PROMPT: &str = include_str!("../assets/default-user-prompt.txt");
@@ -94,11 +94,11 @@ pub struct TranslatorConfiguration {
 
     /// Original language of the text to translate
     #[arg(short, long, default_value = "Japanese")]
-    pub source_language: String,
+    pub source_language: Language,
 
     /// Target language of the text to translate
     #[arg(short, long, default_value = "English")]
-    pub target_language: String,
+    pub target_language: Language,
 }
 
 /// Represents the state of the translator after the configuration is parsed and ready to translate.
@@ -243,15 +243,15 @@ impl Translator<ReadyForTranslation> {
 fn get_prompt(
     path: Option<PathBuf>,
     default: &str,
-    source_language: &str,
-    target_language: &str,
+    source_language: &Language,
+    target_language: &Language,
 ) -> Result<String> {
     let prompt = match path {
         Some(p) => read_to_string(&p).unwrap_or(default.to_string()),
         None => default.to_string(),
     }
-    .replace("{source}", source_language)
-    .replace("{target}", target_language);
+    .replace("{source}", source_language.as_ref())
+    .replace("{target}", target_language.as_ref());
 
     Ok(prompt.to_string())
 }
